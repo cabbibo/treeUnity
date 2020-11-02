@@ -8,85 +8,81 @@ using UnityEngine.Rendering;
 [ExecuteAlways]
 public class Tree : MonoBehaviour
 {
-    
 
+
+
+    [Header("Branching Info")]
     // How many points we see on a branch
     
     [Range(1,100)] public int pointsPerBranch = 40;
     
-    [Range(0,1)] public float pointsPerBranchReducer = .9f;
+    [Range(0,2)] public float pointsPerBranchReducer = .9f;
 
     // Max number of spawns per branch
     [Range(1,100)] public int maxNumberBranchesPerBranch = 40;
     
-    [Range(0,1)] public float maxNumberBranchesPerBranchReducer = .6f;
+    [Range(0,2)] public float maxNumberBranchesPerBranchReducer = .6f;
 
 
     [Range(0,1)]public float branchChance = .6f;
     
-    [Range(0,1)] public float branchChanceReducer = .8f;
+    [Range(0,2)] public float branchChanceReducer = .8f;
 
 
-    [Range(0,1)]public float noiseWithinBranch = .4f;
-    
-    [Range(0,1)] public float noiseWithinBranchReducer = 1.1f;
+    [Range(0,1)]public float noisePower = .4f;
+    [Range(0,2)] public float noisePowerReducer = 1.1f;
 
 
-        [Range(0,10)]public float noiseSize = .4f;
-    
-    [Range(0,2)] public float noiseSizeReducer = 1.1f;
+    [Range(0,10)]public float noiseSize = .4f;
+    [Range(0,5)] public float noiseSizeReducer = 1.1f;
     
     
     // Changes how much branches match the current branches
     // direction
     [Range(0,1)]public float minAngleMatch = 0;
     
-    [Range(0,1)] public float minAngleReducer = 1;
+    [Range(0,2)] public float minAngleReducer = 1;
     
     [Range(0,1)] public float maxAngleMatch = 1;
     
-    [Range(0,1)] public float maxAngleReducer = .9f;
+    [Range(0,2)] public float maxAngleReducer = .9f;
 
-    [Range(0,1)] public float upDesire = 1;
-    
-    [Range(0,1)] public float upDesireReducer = .9f;
+
 
 
 
     // If this value is 1, then the length will be reduced
     // by how far up the branch it is. if it is 0, will not matter
     [Range(0,1)] public float baseVsTipLength = 0;
-    [Range(0,1)] public float baseVsTipLengthReducer = 1;
+    [Range(0,2)] public float baseVsTipLengthReducer = 1;
 
 
     // If this value is 1, then the branch will pull its max length from 
     // its parents length, rather than the current iteration level
     [Range(0,1)] public float parentLengthMax= 0;
-    [Range(0,1)] public float parentLengthMaxReducer = 1;
+    [Range(0,2)] public float parentLengthMaxReducer = 1;
 
 
 
     [Range(0,5)] public float length = 2;
-    [Range(0,1)] public float lengthReducer = .9f;
+    [Range(0,2)] public float lengthReducer = .9f;
 
 
     [Range(0,1)] public float lengthVariation = .3f;
-    [Range(0,1)] public float lengthVariationReducer = .9f;
+    [Range(0,2)] public float lengthVariationReducer = .9f;
 
 
     
 
-    [Range(0,10)]public float branchThickness;
-    
 
     
 
     // Where we want branches to start and end
     [Range(0,1)] public float startBranchLocation = .5f;
-    [Range(0,1)] public float startBranchReducer = .9f;
+    [Range(0,2)] public float startBranchReducer = .9f;
     [Range(0,1)] public float endBranchLocation = 1;
     [Range(0,1)] public float endOfBranchWeight = .5f;
-    [Range(0,1)] public float endOfBranchWeightReducer = .9f;
+    [Range(0,2)] public float endOfBranchWeightReducer = .9f;
 
 
 
@@ -94,31 +90,60 @@ public class Tree : MonoBehaviour
 
 
 
-    public int numBarkColumns = 10;
-    public float numBarkColumnsReducer = 1;
 
-    public int numBarkRows = 20;
-    public float numBarkRowsReducer = 1;
+    [Header("Bark Info")]
+    [Range(0,.5f)] public float width;
+    [Range(0,1)] public float widthReducer;
 
 
+    // if width smaller than this wont make a branch
+    [Range(0,.1f)] public float widthCutoff;
+
+    [Range(0,100)] public int numBarkColumns = 10;
+    [Range(0,2)] public float numBarkColumnsReducer = 1;
+
+    [Range(0,100)] public int numBarkRows = 20;
+    
+    [Range(0,2)] public float numBarkRowsReducer = 1;
+
+
+    
+    // Width of just the trunk
+    public AnimationCurve trunkCurve;
+
+    // width of branches
+    public AnimationCurve branchCurve;
+    
+
+
+
+
+
+[Header("Limits ")]
     // Limiting recursion
     [Range(0,5)] public int maxIterationLevel = 3;
-    [Range(0,100)] public int maxBranches = 20;
-    [Range(0,10000)] public int maxPoints = 100000;
+    [Range(0,10000)] public int maxBranches = 20;
+    [Range(0,100000)] public int maxPoints = 100000;
 
 
 
 
-
+    [Header("Data")]
     public int totalPoints;
     public int totalBarkPoints;
     public int totalBarkTris;
+
+    
+
+    public int currentTotalPoints;
+    public int currentTotalBranches;
 
     public List<Branch> branches;//<Branches>
 
   
 
-    public float newestParticle;
+
+    [Header("Rendering")]
 
 
     public bool debugSkeleton;
@@ -134,13 +159,36 @@ public class Tree : MonoBehaviour
     public Material meshMaterial;
 
 
+
     [Range(0,1)]
     public float barkShown;
     
     [Range(0,1)]
     public float skeletonShown;
 
+
+
+    /*
+
+        Todo Variables
+
+
+    */
+
+        
+
+    [Range(0,1)] public float upDesire = 1;
+    
+    [Range(0,2)] public float upDesireReducer = .9f;
+    //public FastNoise noise;
+    
+
+    public Vector3 offset;
     public void OnEnable(){
+        offset = new Vector3( 0 , Mathf.Sin(Time.time * 10000) * 1000 ,0 );
+      //  noise = new FastNoise(); // Create a FastNoise object
+      //  noise.SetNoiseType(FastNoise.NoiseType.SimplexFractal);
+
         BuildBranches();
     }
     
@@ -149,29 +197,21 @@ public class Tree : MonoBehaviour
         branches = new List<Branch>();
     
         int currIterations = 0;
+        currentTotalPoints = 0;
+        currentTotalBranches = 0;
        
         Vector3 direction = new Vector3(0,1,0);
         Vector3 startPosition = new Vector3(0,0,0);
 
-        Branch trunk = new Branch(  this, currIterations , null  , startPosition , direction , 0 , 0  , length );
+        Branch trunk = new Branch(  this, currIterations , null  , startPosition , direction , 0 , 0  , length , width );
 
         branches.Add( trunk );
 
         BuildMesh();
 
     }
-
-    public List<Vector4> allPoints;
-
     public void BuildMesh(){        
 
-        FlattenPoints();
-
-    }
-
-    public void FlattenPoints(){
-
-        allPoints = new List<Vector4>();
 
         float maxTime = 0;
         totalPoints = 0;
@@ -188,6 +228,7 @@ public class Tree : MonoBehaviour
         
             for( int i = 0; i < b.points.Count; i++ ){
                 maxTime = Mathf.Max(maxTime , b.points[i].timeCreated);
+
                 totalPoints ++;
             }
         
@@ -195,8 +236,8 @@ public class Tree : MonoBehaviour
         }
 
 
-        float[] barkVals = new float[ totalBarkPoints * 8 ];
-        float[] vals = new float[ totalPoints  * 12 ];
+        float[] barkVals = new float[ totalBarkPoints * 12 ];
+        float[] vals = new float[ totalPoints  * 16 ];
 
 
         int[] barkTris = new int[totalBarkTris]; 
@@ -242,7 +283,7 @@ public class Tree : MonoBehaviour
                 for( int j = 0; j < b.numBarkColumns; j++ ){
 
                     float normalizedRowID = (float)i/((float)b.numBarkRows-1);
-                    float noramlizedColID = (float)j/(float)b.numBarkColumns;
+                    float noramlizedColID = (float)j/((float)b.numBarkColumns-1);
 
                     float v = normalizedRowID * .99f * ((float)totalPoints-1);
                 
@@ -255,6 +296,7 @@ public class Tree : MonoBehaviour
 
 
                     float fLife;
+                    float fWidth;
                     
                     if( inVal == 0 || up == down ){
 
@@ -269,32 +311,40 @@ public class Tree : MonoBehaviour
                     Branch.Point p1 = b.points[(int)down];
                     Branch.Point p2 = b.points[(int)up];
 
-                    fPos = cubicPoint( inVal , p1.position , p1.position + p1.tangent / 3 , p2.position - p2.tangent/3 , p2.position );
-                    fPos1 = cubicPoint( inVal + .001f , p1.position , p1.position + p1.tangent / 3 , p2.position - p2.tangent/3 , p2.position );
+                    fPos = cubicPoint( inVal , p1.position , p1.position + p1.normal / 3 , p2.position - p2.normal/3 , p2.position );
+                    fPos1 = cubicPoint( inVal + .001f , p1.position , p1.position + p1.normal / 3 , p2.position - p2.normal/3 , p2.position );
 
                     fLife = Mathf.Lerp( p1.timeCreated , p2.timeCreated, inVal);
+                    fWidth = Mathf.Lerp( p1.width , p2.width, inVal);
+                    Vector3 fNor = Vector3.Lerp( p1.normal , p2.normal, inVal);
+                    Vector3 fTan = Vector3.Lerp( p1.tangent , p2.tangent, inVal);
+                    Vector3 fBi = Vector3.Lerp( p1.binormal , p2.binormal, inVal);
 
-                    Vector3 fNor = (fPos1 - fPos).normalized;
-                    Vector3 fTan = (Vector3.Cross( fNor , new Vector3(0,1,0) )).normalized;
-                    Vector3 fBi = (Vector3.Cross( fNor , fTan )).normalized;
-                    
 
                     float angle = noramlizedColID * 2 * Mathf.PI;
                     float radius = .02f * (1-normalizedRowID)/ (1+fLife); 
 
-                    fPos += (fTan * Mathf.Sin( angle )  - fBi * Mathf.Cos(angle)) * radius;;
+                    Vector3 outVec = (fTan * Mathf.Sin( angle )  - fBi * Mathf.Cos(angle)) * fWidth;
+                    fPos += outVec;// radius;;
+
+                    outVec = outVec.normalized;
                     
         
                     // TODO MAKE THIS 
-                    barkVals[ baseBarkID * 8 + 0 ] = fPos.x;
-                    barkVals[ baseBarkID * 8 + 1 ] = fPos.y;
-                    barkVals[ baseBarkID * 8 + 2 ] = fPos.z;
+                    barkVals[ baseBarkID * 12 + 0 ] = fPos.x;
+                    barkVals[ baseBarkID * 12 + 1 ] = fPos.y;
+                    barkVals[ baseBarkID * 12 + 2 ] = fPos.z;
+
+                    barkVals[ baseBarkID * 12 + 3 ] = outVec.x;
+                    barkVals[ baseBarkID * 12 + 4 ] = outVec.y;
+                    barkVals[ baseBarkID * 12 + 5 ] = outVec.z;
                     
-                    barkVals[ baseBarkID * 8 + 3 ] = noramlizedColID;
-                    barkVals[ baseBarkID * 8 + 4 ] = normalizedRowID;
-                    barkVals[ baseBarkID * 8 + 5 ] = baseVal;
-                    barkVals[ baseBarkID * 8 + 6 ] = totalPoints;
-                    barkVals[ baseBarkID * 8 + 7 ] = fLife/maxTime;
+                    barkVals[ baseBarkID * 12 + 6 ] = noramlizedColID;
+                    barkVals[ baseBarkID * 12 + 7 ] = normalizedRowID;
+                    barkVals[ baseBarkID * 12 + 8 ] = baseVal;
+                    barkVals[ baseBarkID * 12 + 9 ] = totalPoints;
+                    barkVals[ baseBarkID * 12 + 10 ] = fLife/maxTime;
+                    barkVals[ baseBarkID * 12 + 11 ] = 0;
 
                  
                     baseBarkID ++;
@@ -310,31 +360,34 @@ public class Tree : MonoBehaviour
      
             foreach( Branch.Point p in b.points ){
                 
-                vals[ id  * 12 + 0] = p.position.x;
-                vals[ id  * 12 + 1] = p.position.y;
-                vals[ id  * 12 + 2] = p.position.z;
-                vals[ id  * 12 + 3] = p.tangent.x;
-                vals[ id  * 12 + 4] = p.tangent.y;
-                vals[ id  * 12 + 5] = p.tangent.z;
-                vals[ id  * 12 + 6] = p.positionInBranch;
-                vals[ id  * 12 + 7] = p.timeCreated;
-                vals[ id  * 12 + 8] = p.timeCreated/maxTime;
-                vals[ id  * 12 + 9] = 0;
-                vals[ id  * 12 + 10] = 0;
-                vals[ id  * 12 + 11] = 0;
+                vals[ id  * 16 + 0] = p.position.x;
+                vals[ id  * 16 + 1] = p.position.y;
+                vals[ id  * 16 + 2] = p.position.z;
+                vals[ id  * 16 + 3] = p.normal.x;
+                vals[ id  * 16 + 4] = p.normal.y;
+                vals[ id  * 16 + 5] = p.normal.z;
+                vals[ id  * 16 + 6] = p.tangent.x;
+                vals[ id  * 16 + 7] = p.tangent.y;
+                vals[ id  * 16 + 8] = p.tangent.z;
+                vals[ id  * 16 + 9] = p.positionInBranch;
+                vals[ id  * 16 + 10] = p.timeCreated;
+                vals[ id  * 16 + 11] = p.timeCreated/maxTime;
+                vals[ id  * 16 + 12] = 0;
+                vals[ id  * 16 + 13] = 0;
+                vals[ id  * 16 + 14] = 0;
+                vals[ id  * 16 + 15] = 0;
 
-                allPoints.Add(new Vector4(p.position.x , p.position.y , p.position.z , p.timeCreated/maxTime));
                 id ++;
             }
 
             branchID ++;
         }
 
-        skeletonBuffer = new ComputeBuffer( totalPoints , 12 * sizeof(float));
+        skeletonBuffer = new ComputeBuffer( totalPoints , 16 * sizeof(float));
         skeletonBuffer.SetData(vals);
 
 
-        barkBuffer = new ComputeBuffer( totalBarkPoints ,8 * sizeof(float));
+        barkBuffer = new ComputeBuffer( totalBarkPoints ,12 * sizeof(float));
         barkBuffer.SetData(barkVals);
 
 
@@ -354,72 +407,74 @@ public class Tree : MonoBehaviour
 
     }
 
-public MaterialPropertyBlock skeletonMPB;
-public MaterialPropertyBlock barkMPB;
-public MaterialPropertyBlock meshMPB;
-void Update(){
+    public MaterialPropertyBlock skeletonMPB;
+    public MaterialPropertyBlock barkMPB;
+    public MaterialPropertyBlock meshMPB;
+    void Update(){
 
-    if( debugSkeleton ){
+        if( debugSkeleton ){
 
-    if( skeletonMPB == null ){
-        skeletonMPB = new MaterialPropertyBlock();
-    }
-
-    skeletonMPB.SetBuffer("_VertBuffer", skeletonBuffer);
-    skeletonMPB.SetInt("_Count",totalPoints);
-    skeletonMPB.SetFloat("_AmountShown", skeletonShown );
-
-    Graphics.DrawProcedural( skeletonMaterial ,  new Bounds(transform.position, Vector3.one * 5000), MeshTopology.Triangles,totalPoints * 6 , 1, null, skeletonMPB, ShadowCastingMode.On, true, LayerMask.NameToLayer("Default"));
-      
-    }
-
-
-
-    if( debugBark ){
-
-    if( barkMPB == null ){
-        barkMPB = new MaterialPropertyBlock();
-    }
-
-    barkMPB.SetBuffer("_VertBuffer", barkBuffer);
-    barkMPB.SetInt("_Count",totalBarkPoints);
-    barkMPB.SetFloat("_AmountShown", barkShown );
-
-    Graphics.DrawProcedural( barkMaterial ,  new Bounds(transform.position, Vector3.one * 5000), MeshTopology.Triangles,totalBarkPoints * 6 , 1, null, barkMPB, ShadowCastingMode.On, true, LayerMask.NameToLayer("Default"));
-      
-    }
-
-
-     if( debugMesh ){
-
-        if( meshMPB == null ){
-            meshMPB = new MaterialPropertyBlock();
+        if( skeletonMPB == null ){
+            skeletonMPB = new MaterialPropertyBlock();
         }
 
-        meshMPB.SetBuffer("_VertBuffer", barkBuffer);
-        meshMPB.SetBuffer("_TriBuffer", barkTriBuffer);
-        meshMPB.SetInt("_Count",totalBarkPoints);
-        meshMPB.SetFloat("_AmountShown", barkShown );
+        skeletonMPB.SetBuffer("_VertBuffer", skeletonBuffer);
+        skeletonMPB.SetInt("_Count",totalPoints);
+        skeletonMPB.SetFloat("_AmountShown", skeletonShown );
 
-        Graphics.DrawProcedural( meshMaterial ,  new Bounds(transform.position, Vector3.one * 5000), MeshTopology.Triangles,totalBarkTris , 1, null, meshMPB, ShadowCastingMode.On, true, LayerMask.NameToLayer("Default"));
+        Graphics.DrawProcedural( skeletonMaterial ,  new Bounds(transform.position, Vector3.one * 5000), MeshTopology.Triangles,totalPoints * 3 * 3 , 1, null, skeletonMPB, ShadowCastingMode.On, true, LayerMask.NameToLayer("Default"));
         
+        }
+
+
+
+        if( debugBark ){
+
+        if( barkMPB == null ){
+            barkMPB = new MaterialPropertyBlock();
+        }
+
+        barkMPB.SetBuffer("_VertBuffer", barkBuffer);
+        barkMPB.SetInt("_Count",totalBarkPoints);
+        barkMPB.SetFloat("_AmountShown", barkShown );
+
+        Graphics.DrawProcedural( barkMaterial ,  new Bounds(transform.position, Vector3.one * 5000), MeshTopology.Triangles,totalBarkPoints * 6 , 1, null, barkMPB, ShadowCastingMode.On, true, LayerMask.NameToLayer("Default"));
+        
+        }
+
+
+        if( debugMesh ){
+
+            if( meshMPB == null ){
+                meshMPB = new MaterialPropertyBlock();
+            }
+
+            meshMPB.SetBuffer("_VertBuffer", barkBuffer);
+            meshMPB.SetBuffer("_TriBuffer", barkTriBuffer);
+            meshMPB.SetInt("_Count",totalBarkPoints);
+            meshMPB.SetFloat("_AmountShown", barkShown );
+
+            Graphics.DrawProcedural( meshMaterial ,  new Bounds(transform.position, Vector3.one * 5000), MeshTopology.Triangles,totalBarkTris , 1, null, meshMPB, ShadowCastingMode.On, true, LayerMask.NameToLayer("Default"));
+            
+        }
+
+
     }
 
 
-}
+        Vector3 cubicPoint( float v , Vector3 p1 , Vector3 p2 , Vector3 p3 , Vector3 p4 ){
+            float c = 1.0f - v;
 
+            float w1 = c*c*c;
+            float w2 = 3*v*c*c;
+            float w3 = 3*v*v*c;
+            float w4 = v*v*v;
 
-Vector3 cubicPoint( float v , Vector3 p1 , Vector3 p2 , Vector3 p3 , Vector3 p4 ){
-            	float c = 1.0f - v;
-
-                float w1 = c*c*c;
-                float w2 = 3*v*c*c;
-                float w3 = 3*v*v*c;
-                float w4 = v*v*v;
-
-                return p1 * w1 + p2 * w2 + p3 * w3 + p4 * w4;
+            return p1 * w1 + p2 * w2 + p3 * w3 + p4 * w4;
 
         }
+
+
 
 
 }
@@ -461,19 +516,25 @@ public class Branch{
             public float timeCreated;
             public float positionInBranch;
             public Vector3 tangent;
+            public Vector3 normal;
 
-           // public float width;
+            public Vector3 binormal;
 
-            public Point(Vector3 pos , float p , float t ){
+           public float width;
+
+            public Point(Vector3 pos , float p , float t , float w ){
                 this.timeCreated = t;
                 this.positionInBranch = p;
                 this.position = pos;
                 this.tangent = Vector3.one;
+                this.normal = Vector3.one;
+                this.binormal  = Vector3.one;
+                this.width = w;
             }
 
         }
 
-        Vector3 GetPositionAlongPoints(float val){
+        Vector3 GetPositionAlongPoints(float val , out float w){
 
             // Reduce by tiny amount so we can still sample up!
             // Also it gives us less of a chance of hitting the points exactly
@@ -489,19 +550,21 @@ public class Branch{
             if( inVal == 0 || up == down ){
             
                 fPos = points[(int)down].position;
+                w = points[(int)down].width;
             
             }else{
 
                 Branch.Point p1 = points[(int)down];
                 Branch.Point p2 = points[(int)up];
-                fPos = cubicPoint( inVal , p1.position , p1.position + p1.tangent / 3 , p2.position - p2.tangent/3 , p2.position );
+                fPos = cubicPoint( inVal , p1.position , p1.position + p1.normal / 3 , p2.position - p2.normal/3 , p2.position );
+                w = Mathf.Lerp( p1.width , p2.width , inVal);
             }
 
             return fPos;
 
         }
 
-        public Branch( Tree t, int IL , Branch par , Vector3 startPos , Vector3 dir , float posInBranch , float tCreated , float currentLength ){
+        public Branch( Tree t, int IL , Branch par , Vector3 startPos , Vector3 dir , float posInBranch , float tCreated , float currentLength , float width ){
             
             iterationLevel = IL;
 
@@ -513,6 +576,8 @@ public class Branch{
             positionInBranch = posInBranch;
             timeCreated = tCreated;
 
+            baseWidth = width * tree.widthReducer;;
+
         
             numBarkRows = currVal( tree.numBarkRows, tree.numBarkRowsReducer);
             numBarkColumns = currVal( tree.numBarkColumns, tree.numBarkColumnsReducer);
@@ -521,7 +586,7 @@ public class Branch{
             flowers = new List<Flower>();
             points = new List<Point>();
 
-
+            // Figures out if we are using the base length wheteher we are inheriting or using from base
             float parentLengthMax = currVal( tree.parentLengthMax , tree.parentLengthMaxReducer );
             length = Mathf.Lerp(  currVal( tree.length , tree.lengthReducer ) , currentLength  , parentLengthMax );
             float lengthVariation = currVal( tree.lengthVariation , tree.lengthVariationReducer );
@@ -536,6 +601,7 @@ public class Branch{
             MakePoints();
 
             tree.branches.Add(this);
+            tree.currentTotalBranches += 1;
 
             if( iterationLevel < tree.maxIterationLevel ){
                 MakeChildren();
@@ -551,23 +617,63 @@ public class Branch{
         
 
             Vector3 currPos = startPosition;
+
+            
+
+                tree.currentTotalPoints += numPoints;
+
+      
+                
            
             // place the points along the branch
             for( int i = 0; i  < numPoints; i++ ){
 
                 float valInBranch = ((float)i/((float)numPoints-1));
 
-                if( i != 0 ){
-
-                    float currNoise = currVal( tree.noiseWithinBranch , tree.noiseWithinBranchReducer );
-                    float currNoiseSize = currVal( tree.noiseSize , tree.noiseSizeReducer );
-                    Vector3 addVal =  Vector3.Cross( Random.insideUnitSphere, direction.normalized ).normalized;
-                    currPos += length * direction * ((float)1/((float)numPoints-1));   
-                    currPos += addVal * .01f * currNoiseSize * valInBranch * currNoise;
+                float widthMultiplier = 1;
+                if( iterationLevel == 0 ){
+                    widthMultiplier = tree.trunkCurve.Evaluate( valInBranch );
+                }else{
+                    widthMultiplier = tree.branchCurve.Evaluate( valInBranch );
                 }
 
 
-                Point p = new Point( currPos , valInBranch , timeCreated + valInBranch); 
+
+
+                if( i != 0 ){
+
+                    float currNoiseSize = currVal( tree.noiseSize , tree.noiseSizeReducer );
+                    float currNoisePower = currVal( tree.noisePower , tree.noisePowerReducer );
+
+
+                    float currUp = currVal( tree.upDesire , tree.upDesireReducer );
+
+                    if( i != 1 ){
+
+                        Vector3 dir = points[i-1].position - points[i-2].position;
+                        currPos += dir.normalized * length  * ((float)1/((float)numPoints-1));  
+                    }else{
+
+                        currPos += length * direction * ((float)1/((float)numPoints-1));  
+                    }
+                    
+
+                    currPos += currUp * Vector3.up * .003f;
+
+
+                   // Vector3 addVal =  Vector3.Cross( Random.insideUnitSphere, direction.normalized ).normalized;
+                    Vector3 noiseDir = Perlin.CurlNoise(  currPos  * currNoiseSize + tree.offset );
+
+                    currPos += noiseDir  * currNoisePower * .1f;
+
+
+                    
+                    
+                   // currPos += addVal * .01f * currNoiseSize * valInBranch * currNoise;
+                }
+
+                float fWidth = baseWidth * widthMultiplier;
+                Point p = new Point( currPos , valInBranch , timeCreated + valInBranch , fWidth ); 
                 points.Add( p );
                 // TODO ADD NOISE
             }
@@ -579,11 +685,20 @@ public class Branch{
                 Branch.Point p = points[i];
 
                 if( i == 0 ){
-                    p.tangent = (points[1].position - p.position);
+                    p.normal = (points[1].position - p.position);
                 }else if( i == points.Count-1 ){
-                    p.tangent = (p.position - points[points.Count-2].position);
+                    p.normal = (p.position - points[points.Count-2].position);
                 }else{
-                    p.tangent = -(points[i-1].position - points[i +1].position);
+                    p.normal = -(points[i-1].position - points[i +1].position);
+                }
+
+
+                if( i == 0 ){
+                    p.tangent = (Vector3.Cross( p.normal.normalized , Vector3.left )).normalized;
+                    p.binormal = (Vector3.Cross( p.normal , p.tangent )).normalized;
+                }else{
+                    p.tangent = -(Vector3.Cross( p.normal.normalized , points[i-1].binormal )).normalized;
+                    p.binormal = (Vector3.Cross( p.normal , p.tangent )).normalized;
                 }
 
                 points[i] = p;
@@ -613,11 +728,13 @@ public class Branch{
 
                     pointAlongPath = 1-pointAlongPath;
                  
-
-                    // TODO this needs to be from start to end point not full along
-                    Vector3 startPosition = GetPositionAlongPoints( pointAlongPath );
-
-                    Vector3 startDir = GetPositionAlongPoints(pointAlongPath + .01f);
+                    float width;
+            
+                    Vector3 startDir = GetPositionAlongPoints(pointAlongPath + .01f , out width);
+                            // TODO this needs to be from start to end point not full along
+                    Vector3 startPosition = GetPositionAlongPoints( pointAlongPath , out width);
+                    
+                 
                     startDir -= startPosition;
                     startDir= startDir.normalized;
 
@@ -628,8 +745,9 @@ public class Branch{
 
                     Vector3 startDirection =newDir;
 
-                    children.Add( new Branch( tree , iterationLevel + 1 , this  , startPosition , startDirection , pointAlongPath , timeCreated + pointAlongPath , length ));
-
+                    if( width > tree.widthCutoff  && tree.branches.Count < tree.maxBranches && tree.currentTotalPoints < tree.maxPoints ){
+                        children.Add( new Branch( tree , iterationLevel + 1 , this  , startPosition , startDirection , pointAlongPath , timeCreated + pointAlongPath , length , width ));
+                    }
 
                 }
 
@@ -653,46 +771,24 @@ public class Branch{
 
 
 
-       /* Vector3 cubicBezierAlongPoints( List<Point> points,  float val){
-
-           int pathPoints = points.Count;
-
-           float pathVal = val * ((float)pathPoints-1);
-           int floor = (int)Mathf.Floor( pathVal);
-           int ceil  = (int)Mathf.Ceil( pathVal);
-
-           int downOne = floor -1;
-           int upOne = ceil + 1;
-
-           float inVal = pathVal - floor;
-
-
-            Vector3 fPos = Vector3.zero;
-
-
-
-
-           if( floor == ceil ){
-            fPos = points[floor];       
-           }else{
-
-               Vector3 p0 = points[floor].position;
-               Vector3 p1 = points[floor].position + points[floor].tUp/3;
-               Vector3 p2 = points[ceil].position - points[ceil].tDown/3;
-               Vector3 p3 = points[ceil].position;
-           }
-
-
-
-
-
-           return Vector3.zero;
-
-        }*/
-
+   
 
 
         Vector3 cubicPoint( float v , Vector3 p1 , Vector3 p2 , Vector3 p3 , Vector3 p4 ){
+            	float c = 1.0f - v;
+
+                float w1 = c*c*c;
+                float w2 = 3*v*c*c;
+                float w3 = 3*v*v*c;
+                float w4 = v*v*v;
+
+                return p1 * w1 + p2 * w2 + p3 * w3 + p4 * w4;
+
+        }
+
+
+        
+        float cubicPoint( float v , float p1 , float p2 , float p3 , float p4 ){
             	float c = 1.0f - v;
 
                 float w1 = c*c*c;

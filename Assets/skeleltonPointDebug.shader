@@ -142,9 +142,9 @@ varyings vert (uint id : SV_VertexID){
 //Pixel function returns a solid color for each point.
 float4 frag (varyings v) : COLOR {
 
-  if( v.timeCreated > _AmountShown ){
+ /* if( v.timeCreated > _AmountShown ){
     discard;
-  }
+  }*/
 
   float3 col = hsv(v.timeCreated,1,1);
 

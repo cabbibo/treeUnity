@@ -21,10 +21,12 @@
      
      struct Vert{
          float3 pos;
+         float3 nor;
          float2 uv;
          float baseVal;
          float totalPoints;
          float branchID;
+         float debug;
      };
 
 
@@ -40,7 +42,7 @@
                 v2f o;
                 Vert v = _VertBuffer[_TriBuffer[vid]];
                 o.pos = mul (UNITY_MATRIX_VP, float4(v.pos,1.0f));
-                //o.nor = v.nor;
+                o.nor = v.nor;
                 return o;
             }
 
@@ -48,6 +50,7 @@
             {
                 // sample the texture
                 fixed4 col = 1;//float4( i.nor * .5 + .5 , 1);//tex2D(_MainTex, i.uv);
+                 col.xyz =  i.nor * .5 + .5 ;//tex2D(_MainTex, i.uv);
                 return col;
             }
 

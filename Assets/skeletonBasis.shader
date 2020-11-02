@@ -1,6 +1,6 @@
 ﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
 
-Shader "Debug/BarkParks" {
+Shader "Debug/SkeletonBasis" {
     Properties {
 
     _Color ("Color", Color) = (1,1,1,1)
@@ -25,11 +25,12 @@ Shader "Debug/BarkParks" {
      struct Vert{
          float3 pos;
          float3 nor;
+         float3 tang;
          float2 uv;
          float baseVal;
          float totalPoints;
          float branchID;
-         float debug;
+         float2 debug;
      };
 
 
@@ -56,6 +57,7 @@ Shader "Debug/BarkParks" {
           float2 uv2       : TEXCOORD6;
           float id        : TEXCOORD5;
           float timeCreated        : TEXCOORD7;
+          float whichDir        : TEXCOORD8;
 
           
       };
@@ -68,10 +70,12 @@ varyings vert (uint id : SV_VertexID){
 
   varyings o;
 
-  int base = id / 6;
-  int alternate = id %6;
+  int base = (id / 3);
+  int base2 = base/3;
+  int alternate = id %3;
+  int which = base % 3;
 
-  if( base < _Count ){
+  if( base2 < _Count ){
 
       float3 extra = float3(0,0,0);
 
@@ -82,14 +86,28 @@ varyings vert (uint id : SV_VertexID){
 
     int bID = base;
 
-    Vert v = _VertBuffer[bID];
+    Vert v = _VertBuffer[base2];
 
-      if( alternate == 0 ){ extra = v.pos +(-u - l) * _Size; }
-      if( alternate == 1 ){ extra = v.pos +(+u - l) * _Size ;}
-      if( alternate == 2 ){ extra = v.pos +(+u + l) * _Size ;  }
-      if( alternate == 3 ){ extra = v.pos +(-u - l) * _Size ;  }
-      if( alternate == 4 ){ extra = v.pos +(+u +l) * _Size ;  }
-      if( alternate == 5 ){ extra = v.pos +(-u+ l) * _Size ;  }
+
+    float3 x = normalize(v.nor);
+    float3 y = normalize(v.tang);
+    float3 z = normalize(cross(x,y));
+
+    if( which == 0 ){
+        l =  x;
+    }else if( which == 1 ){
+        l = y;
+    }else{
+        l = z;
+    }
+
+
+    o.whichDir = base;
+    u = normalize(cross( UNITY_MATRIX_V[2].xyz , l ));
+
+      if( alternate == 0 ){ extra = v.pos - u * _Size; }
+      if( alternate == 1 ){ extra = v.pos + u * _Size ;}
+      if( alternate == 2 ){ extra = v.pos + l * 10 * _Size ;  }
 
         o.worldPos = extra;// mul(_Transform, float4((v.pos) ,1));
         ///o.worldPos +=  extra * _Size;
@@ -122,7 +140,7 @@ float4 frag (varyings v) : COLOR {
     discard;
   }
 
-  float3 col =hsv( v.timeCreated,1,1);// _Color;
+  float3 col =hsv( v.whichDir/3,1,1);// _Color;
 
     return float4(col,1 );
 }
